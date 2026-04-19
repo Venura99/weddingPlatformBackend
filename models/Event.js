@@ -15,6 +15,11 @@ const EventSchema = new mongoose.Schema({
 
   gallery: [String],
 
+   parents: {
+    groom: String,
+    bride: String
+  },
+
   story: [
     {
       title: String,
