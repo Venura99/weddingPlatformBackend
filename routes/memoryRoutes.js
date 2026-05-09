@@ -84,7 +84,9 @@ router.post(
 
         message,
 
-        imageUrl: req.file.path
+        imageUrl: req.file.path,
+
+        status: 'pending',
 
       });
 
@@ -115,10 +117,95 @@ router.get('/:eventId', async (req, res) => {
   try {
 
     const memories = await Memory.find({
-      eventId: req.params.eventId
-    }).sort({ createdAt: -1 });
+  eventId: req.params.eventId,
+  status: 'approved'
+}).sort({ createdAt: -1 });
 
     res.json(memories);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
+
+});
+
+// ADMIN GET ALL MEMORIES
+router.get('/admin/all/:eventId', async (req, res) => {
+
+  try {
+
+    const memories = await Memory.find({
+  eventId: req.params.eventId,
+//   status: 'approved'
+}).sort({ createdAt: -1 });
+
+    res.json(memories);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
+
+});
+
+
+// APPROVE MEMORY
+router.put('/approve/:id', async (req, res) => {
+
+  try {
+
+    const memory = await Memory.findByIdAndUpdate(
+
+      req.params.id,
+
+      {
+        status: 'approved'
+      },
+
+      {
+        new: true
+      }
+
+    );
+
+    res.json(memory);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
+
+});
+
+
+// DELETE MEMORY
+router.delete('/:id', async (req, res) => {
+
+  try {
+
+    await Memory.findByIdAndDelete(
+      req.params.id
+    );
+
+    res.json({
+      success: true
+    });
 
   } catch (err) {
 

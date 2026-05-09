@@ -26,7 +26,8 @@ const memorySchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['pending', 'approved'],
-    default: 'approved'
+    // default: 'approved'
+     default: 'pending'
   }
 
 }, { timestamps: true });
