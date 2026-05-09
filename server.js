@@ -17,6 +17,11 @@ app.use("/api/rsvp", require("./routes/rsvpRoutes"));
 const adminRoutes = require('./routes/adminRoutes');
 app.use('/api/admin', adminRoutes);
 
+const memoryRoutes = require('./routes/memoryRoutes');
+app.use('/api/memories', memoryRoutes);
+
+// app.use('/uploads', express.static('uploads'));
+
 app.get("/", (req, res) => {
   res.send("API Running...");
 });
