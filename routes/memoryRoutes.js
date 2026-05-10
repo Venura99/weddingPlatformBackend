@@ -1,3 +1,5 @@
+// routes/memoryRoutes.js
+
 const express = require('express');
 const router = express.Router();
 
@@ -10,9 +12,13 @@ const {
 const cloudinary = require('../config/cloudinary');
 
 const Memory = require('../models/Memory');
+const Event = require('../models/Event');
 
 
+// ======================================================
 // CLOUDINARY STORAGE
+// ======================================================
+
 const storage = new CloudinaryStorage({
 
   cloudinary,
@@ -48,13 +54,19 @@ const storage = new CloudinaryStorage({
 });
 
 
+// ======================================================
 // MULTER
+// ======================================================
+
 const upload = multer({
   storage
 });
 
 
+// ======================================================
 // UPLOAD MEMORY
+// ======================================================
+
 router.post(
   '/upload',
   upload.single('image'),
@@ -63,10 +75,30 @@ router.post(
     try {
 
       const {
-        eventId,
-        guestName,
-        message
-      } = req.body;
+  eventId,
+  guestName,
+  message
+} = req.body;
+
+let finalEventId = eventId;
+
+if (!eventId.match(/^[0-9a-fA-F]{24}$/)) {
+
+  const event = await Event.findOne({
+    slug: eventId
+  });
+
+  if (!event) {
+
+    return res.status(404).json({
+      message: 'Event not found'
+    });
+
+  }
+
+  finalEventId = event._id;
+
+}
 
       if (!req.file) {
 
@@ -78,7 +110,7 @@ router.post(
 
       const memory = new Memory({
 
-        eventId,
+        eventId: finalEventId,
 
         guestName,
 
@@ -86,7 +118,7 @@ router.post(
 
         imageUrl: req.file.path,
 
-        status: 'pending',
+        status: 'pending'
 
       });
 
@@ -111,15 +143,34 @@ router.post(
 );
 
 
-// GET MEMORIES
-router.get('/:eventId', async (req, res) => {
+// ======================================================
+// GET MEMORIES BY SLUG
+// IMPORTANT: MUST COME FIRST
+// ======================================================
+
+router.get('/event/:slug', async (req, res) => {
 
   try {
 
+    const event = await Event.findOne({
+      slug: req.params.slug
+    });
+
+    if (!event) {
+
+      return res.status(404).json({
+        message: 'Event not found'
+      });
+
+    }
+
     const memories = await Memory.find({
-  eventId: req.params.eventId,
-  status: 'approved'
-}).sort({ createdAt: -1 });
+
+      eventId: event._id,
+
+      status: 'approved'
+
+    }).sort({ createdAt: -1 });
 
     res.json(memories);
 
@@ -135,15 +186,21 @@ router.get('/:eventId', async (req, res) => {
 
 });
 
+
+// ======================================================
 // ADMIN GET ALL MEMORIES
+// IMPORTANT: MUST COME BEFORE /:eventId
+// ======================================================
+
 router.get('/admin/all/:eventId', async (req, res) => {
 
   try {
 
     const memories = await Memory.find({
-  eventId: req.params.eventId,
-//   status: 'approved'
-}).sort({ createdAt: -1 });
+
+      eventId: req.params.eventId
+
+    }).sort({ createdAt: -1 });
 
     res.json(memories);
 
@@ -160,7 +217,10 @@ router.get('/admin/all/:eventId', async (req, res) => {
 });
 
 
+// ======================================================
 // APPROVE MEMORY
+// ======================================================
+
 router.put('/approve/:id', async (req, res) => {
 
   try {
@@ -194,7 +254,10 @@ router.put('/approve/:id', async (req, res) => {
 });
 
 
+// ======================================================
 // DELETE MEMORY
+// ======================================================
+
 router.delete('/:id', async (req, res) => {
 
   try {
@@ -218,5 +281,42 @@ router.delete('/:id', async (req, res) => {
   }
 
 });
+
+
+// ======================================================
+// GET MEMORIES BY EVENT ID
+// MUST ALWAYS BE LAST
+// ======================================================
+
+router.get('/id/:eventId', async (req, res) => {
+
+  try {
+
+    const memories = await Memory.find({
+
+      eventId: req.params.eventId,
+
+      status: 'approved'
+
+    }).sort({ createdAt: -1 });
+
+    res.json(memories);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: err.message
+    });
+
+  }
+
+});
+
+
+// ======================================================
+// EXPORT
+// ======================================================
 
 module.exports = router;

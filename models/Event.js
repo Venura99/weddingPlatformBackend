@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+// const Event = require('../models/Event');
 const EventSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true },
 
