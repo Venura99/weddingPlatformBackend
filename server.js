@@ -20,6 +20,9 @@ app.use('/api/admin', adminRoutes);
 const memoryRoutes = require('./routes/memoryRoutes');
 app.use('/api/memories', memoryRoutes);
 
+const birthdayWishRoutes = require('./routes/birthdayWishRoutes');
+app.use('/api/birthday-wishes', birthdayWishRoutes);
+
 // app.use('/uploads', express.static('uploads'));
 
 app.get("/", (req, res) => {
